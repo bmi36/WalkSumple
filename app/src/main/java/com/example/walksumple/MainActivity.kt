@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
-    private  var mSensorManager: SensorManager? = null
+    private var mSensorManager: SensorManager? = null
     private var mStepDetectorSensor: Sensor? = null
     private var mStepConterSensor: Sensor? = null
 
@@ -25,29 +25,35 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mStepConterSensor = mSensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int){}
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private var step = 0
 
     override fun onSensorChanged(event: SensorEvent) {
-        val sensor = event.sensor
-        val value = event.values
-        val teimeStamp = event.timestamp
-
-        if (sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            Log.d("test", value[0].toString())
-        }
+        step = event.values.let { it[0].toInt() }
+        stepsValue.text = step.toString()
     }
 
     override fun onResume() {
         super.onResume()
         mSensorManager?.registerListener(this, mStepConterSensor, SensorManager.SENSOR_DELAY_NORMAL)
 
-        mSensorManager?.registerListener(this,mStepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        mSensorManager?.registerListener(
+            this,
+            mStepDetectorSensor,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
     }
 
     override fun onStop() {
         super.onStop()
 
-        mSensorManager?.unregisterListener(this,mStepConterSensor)
-        mSensorManager?.unregisterListener(this,mStepDetectorSensor)
+        mSensorManager?.unregisterListener(this, mStepConterSensor)
+        mSensorManager?.unregisterListener(this, mStepDetectorSensor)
+    }
+
+    override fun onStart() {
+        stepsValue.text = step.toString()
+        super.onStart()
     }
 }
