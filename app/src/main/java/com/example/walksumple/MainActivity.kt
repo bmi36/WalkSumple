@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
@@ -28,22 +27,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int){}
 
-    private val event = DayilyEventController(0,0)
     override fun onSensorChanged(event: SensorEvent) {
         val sensor = event.sensor
         val value = event.values
         val teimeStamp = event.timestamp
-        val data = Date(teimeStamp)
-
-        if (!this.event.isDoneDaily()){
-            this.event.execute()
-            stepsValue.text = "0"
-        }
 
         if (sensor.type == Sensor.TYPE_STEP_COUNTER) {
-            Log.d("test",data.toString())
             Log.d("test", value[0].toString())
-            stepsValue.text = value[0].toString()
         }
     }
 
@@ -59,10 +49,5 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         mSensorManager?.unregisterListener(this,mStepConterSensor)
         mSensorManager?.unregisterListener(this,mStepDetectorSensor)
-    }
-
-    override fun onStart() {
-
-        super.onStart()
     }
 }
