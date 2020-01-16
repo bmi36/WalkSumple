@@ -3,13 +3,10 @@ package com.example.walksumple
 import android.content.Context
 import android.content.SharedPreferences
 import android.hardware.Sensor
-import android.hardware.Sensor.TYPE_STEP_COUNTER
-import android.hardware.Sensor.TYPE_STEP_DETECTOR
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
@@ -17,26 +14,25 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
-    companion object {
-        const val USER = "2"
-        const val WALK = "1"
-    }
-
     private lateinit var mSensorManager: SensorManager
     private lateinit var mStepDetectorSensor: Sensor
     private lateinit var mStepCanterSensor: Sensor
 
     private var stepCounter: Int = 0
+    private var detectortCounter = 0
     private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        dayFlg.execute()
         prefs = getSharedPreferences("user", Context.MODE_PRIVATE)
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        mStepDetectorSensor = mSensorManager.getDefaultSensor(TYPE_STEP_DETECTOR)
-        mStepCanterSensor = mSensorManager.getDefaultSensor(TYPE_STEP_COUNTER)
+        mStepDetectorSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
+        mStepCanterSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -44,26 +40,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val dayFlg = DayilyEventController(0, 0)
 
     override fun onSensorChanged(event: SensorEvent) {
-        event.values.let {
-            Log.d("test", it[0].toString())
-
-            stepsValue.text = (stepCounter).toString()
-
-            if (!dayFlg.isDoneDaily()) {
-                prefs.run {
-                    val day = Date(System.currentTimeMillis()).toTypeDate()
-                    val step = getInt(WALK, 0)
-                    stepCounter = 0
-                    edit().clear().apply()
-                    dayFlg.execute()
-//                    データベースに追加
-                }
-            }
-
-            if (event.sensor.type == TYPE_STEP_COUNTER) { stepCounter++ }
-
-
+        when (event.sensor.type) {
+            Sensor.TYPE_STEP_DETECTOR -> stepCounter++
+            else -> null
         }
+        stepsValue.text = (stepCounter).toString()
     }
 
     override fun onResume() {
@@ -82,12 +63,21 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         prefs.edit().putInt("walk", stepCounter).apply()
         mSensorManager.unregisterListener(this, mStepCanterSensor)
         mSensorManager.unregisterListener(this, mStepDetectorSensor)
+        if (!dayFlg.isDoneDaily()) {
+            prefs.run {
+                val day = Date(System.currentTimeMillis()).toTypeDate()
+                val step = getInt("walk", 0)
+                stepCounter = 0
+                edit().clear().apply()
+
+//                    データベースに追加
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
         stepCounter = prefs.getInt("walk", 0)
-        stepsValue.text = stepCounter.toString()
     }
 
 }
