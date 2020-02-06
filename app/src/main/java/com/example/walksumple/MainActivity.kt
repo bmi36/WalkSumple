@@ -1,6 +1,5 @@
 package com.example.walksumple
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.hardware.Sensor
@@ -9,7 +8,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,7 +27,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        viewModel = ViewModelProviders.of(this)[SteoViewModel::class.java]
+        viewModel = ViewModelProvider(this)[SteoViewModel::class.java]
         dayFlg.execute()
         prefs = getSharedPreferences("user", Context.MODE_PRIVATE)
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -66,12 +65,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mSensorManager.unregisterListener(this, mStepDetectorSensor)
         if (!dayFlg.isDoneDaily()) {
             prefs.run {
-                val day = Date(System.currentTimeMillis()).toTypeDate()
+                val day = Calendar.getInstance()
                 val step = getInt("walk", 0)
-                viewModel.UandI(StepEntity(day,step))
+                viewModel.UandI(StepEntity(day.timeInMillis,step))
                 stepCounter = 0
                 edit().clear().apply()
-
             }
         }
     }
@@ -83,10 +81,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 }
 
-@SuppressLint("SimpleDateFormat")
 fun Long.toTypeDate() =
-    SimpleDateFormat("yyyyMMdd").let { it.format(this.toInt() / 1000000).toLong() }
+    SimpleDateFormat("yyyyMMdd", Locale.US).format(this.toInt() / 1000000).toLong()
 
-@SuppressLint("SimpleDateFormat")
 fun Date.toTypeDate() =
-    SimpleDateFormat("yyyyMMdd").let { it.format(this).toLong() }
+    SimpleDateFormat("yyyyMMdd", Locale.US).format(this).toLong()
